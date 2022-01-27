@@ -134,8 +134,9 @@ defmodule AppBuilder.MacOS do
   end
 
   defp launcher(additional_paths) do
-    additional_paths = additional_paths
-      |> Enum.map(&("\\(resourcePath)#{&1}"))
+    additional_paths =
+      additional_paths
+      |> Enum.map(&"\\(resourcePath)#{&1}")
       |> Enum.join(":")
 
     """

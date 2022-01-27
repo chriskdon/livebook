@@ -42,14 +42,18 @@ defmodule WxDemo.Window do
     wx = :wx.new()
     frame = :wxFrame.new(wx, -1, title)
 
-    if macOS?() do
+    if macos?() do
       fixup_macos_menubar(frame, title)
     end
 
     :wxFrame.show(frame)
     :wxFrame.connect(frame, :command_menu_selected)
     :wxFrame.connect(frame, :close_window, skip: true)
-    :wx.subscribe_events()
+
+    if macos?() do
+      :wx.subscribe_events()
+    end
+
     state = %{frame: frame}
     {frame, state}
   end
@@ -98,7 +102,7 @@ defmodule WxDemo.Window do
     end
   end
 
-  defp macOS?() do
+  defp macos?() do
     :os.type() == {:unix, :darwin}
   end
 end

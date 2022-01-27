@@ -39,6 +39,10 @@ defmodule WxDemo.MixProject do
       mac_app_dmg: [
         include_executables_for: [:unix],
         steps: [:assemble, &build_mac_app_dmg(&1, options)]
+      ],
+      windows_installer: [
+        include_executables_for: [:windows],
+        steps: [:assemble, &AppBuilder.build_windows_installer(&1, options)]
       ]
     ]
   end
