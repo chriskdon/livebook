@@ -142,6 +142,19 @@ defmodule Livebook.MixProject do
         include_erts: false,
         rel_templates_path: "rel/app",
         steps: [:assemble, &remove_cookie/1, &standalone_erlang_elixir/1, &build_mac_app_dmg/1]
+      ],
+      windows_installer: [
+        include_executables_for: [:windows],
+        # TODO: change to false
+        include_erts: true,
+        rel_templates_path: "rel/app",
+        steps: [
+          :assemble,
+          &remove_cookie/1,
+          # TODO: uncomment
+          # &standalone_erlang_elixir/1,
+          &build_windows_installer/1
+        ]
       ]
     ]
   end
@@ -188,5 +201,11 @@ defmodule Livebook.MixProject do
       ] ++ @app_options
 
     AppBuilder.build_mac_app_dmg(release, options)
+  end
+
+  defp build_windows_installer(release) do
+    options = Keyword.take(@app_options, [:name, :version, :url_schemes]) ++ [logo_path: "static/images/logo.png"]
+
+    AppBuilder.build_windows_installer(release, options)
   end
 end

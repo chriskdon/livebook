@@ -34,7 +34,11 @@ if Mix.target() == :app do
       :wxFrame.show(frame)
       :wxFrame.connect(frame, :command_menu_selected)
       :wxFrame.connect(frame, :close_window, skip: true)
-      :wx.subscribe_events()
+
+      if macos?() do
+        :wx.subscribe_events()
+      end
+
       state = %{frame: frame}
 
       Livebook.Utils.browser_open(LivebookWeb.Endpoint.access_url())
