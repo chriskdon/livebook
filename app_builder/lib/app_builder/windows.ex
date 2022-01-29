@@ -88,9 +88,9 @@ defmodule AppBuilder.Windows do
 
   Section "Dummy Section" SecDummy
     SetOutPath "$INSTDIR"
-    ;CopyFiles "${NSISDIR}\\<%= app_name %>Install.exe" "$INSTDIR\\<%= app_name %>.exe"
     File /r rel rel
     File "<%= app_name %>.vbs"
+    File "app_icon.ico"
     WriteUninstaller "$INSTDIR\\<%= app_name %>Uninstall.exe"
 
   <%= for url_scheme <- url_schemes do %>
@@ -105,14 +105,13 @@ defmodule AppBuilder.Windows do
   SectionEnd
 
   Section "Desktop Shortcut" SectionX
-    CreateShortCut "$DESKTOP\\<%= app_name %>.lnk" "$INSTDIR\\<%= app_name %>.vbs"
+    CreateShortCut "$DESKTOP\\<%= app_name %>.lnk" "$INSTDIR\\<%= app_name %>.vbs" "" "$INSTDIR\\app_icon.ico"
   SectionEnd
 
   Section "Uninstall"
-    Delete "$INSTDIR\\<%= app_name %>Install.exe"
-    Delete "$INSTDIR\\<%= app_name %>Uninstall.exe"
     Delete "$DESKTOP\\<%= app_name %>.lnk"
-    RMDir "$INSTDIR"
+    ; TODO: stop epmd if it was started
+    RMDir /r "$INSTDIR"
   SectionEnd
   """
 
