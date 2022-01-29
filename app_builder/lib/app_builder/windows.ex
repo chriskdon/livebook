@@ -11,6 +11,7 @@ defmodule AppBuilder.Windows do
     options =
       Keyword.validate!(options, [
         :name,
+        :version,
         :url_schemes,
         :logo_path
       ])
@@ -19,22 +20,17 @@ defmodule AppBuilder.Windows do
 
     tmp_dir = "tmp"
     File.mkdir_p!(tmp_dir)
-    File.rm_rf!("tmp/rel")
 
     logo_path = options[:logo_path] || Application.app_dir(:wx, "examples/demo/erlang.png")
     app_icon_path = Path.join(tmp_dir, "app_icon.ico")
     copy_image(logo_path, app_icon_path)
 
-    File.rename!(release.path, Path.join(tmp_dir, "rel"))
-    erts_dir = Path.join([tmp_dir, "rel", "erts-#{:erlang.system_info(:version)}"])
-
+    erts_dir = Path.join([release.path, "erts-#{:erlang.system_info(:version)}"])
     rcedit_path = ensure_rcedit(tmp_dir)
+    cmd!(rcedit_path, ["--set-icon", app_icon_path, Path.join([erts_dir, "bin", "erl.exe"])])
 
-    cmd!(rcedit_path, [
-      "--set-icon",
-      app_icon_path,
-      Path.join([erts_dir, "bin", "erl.exe"])
-    ])
+    File.rm_rf!("tmp/rel")
+    File.cp_r!(release.path, Path.join(tmp_dir, "rel"))
 
     File.write!(Path.join(tmp_dir, "#{app_name}.vbs"), launcher(release))
     nsi_path = Path.join(tmp_dir, "#{app_name}.nsi")
@@ -160,14 +156,18 @@ defmodule AppBuilder.Windows do
     if Path.extname(src_path) == ".ico" do
       File.cp!(src_path, dest_path)
     else
-      cmd!("magick", [
-        src_path,
-        "-background",
-        "none",
-        "-resize",
-        "128x128",
-        dest_path
-      ])
+      sizes = [16, 32, 48, 64, 128]
+
+      for i <- sizes do
+        cmd!("magick", [src_path, "-resize", "#{i}x#{i}", sized_path(dest_path, i)])
+      end
+
+      sized_paths = Enum.map(sizes, &sized_path(dest_path, &1))
+      cmd!("magick", sized_paths ++ [dest_path])
     end
+  end
+
+  defp sized_path(path, size) do
+    String.replace_trailing(path, ".ico", ".#{size}.ico")
   end
 end
